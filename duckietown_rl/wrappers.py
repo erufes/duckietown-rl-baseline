@@ -1,10 +1,11 @@
 import gym
+from gym.core import ObservationWrapper, RewardWrapper, ActionWrapper
 from gym import spaces
 import numpy as np
 from PIL import Image
 
 
-class ResizeWrapper(gym.ObservationWrapper):
+class ResizeWrapper(ObservationWrapper):
     def __init__(self, env=None, shape=(64, 64, 3)):
         super(ResizeWrapper, self).__init__(env)
         self.observation_space.shape = shape
@@ -17,11 +18,10 @@ class ResizeWrapper(gym.ObservationWrapper):
         self.shape = shape
 
     def observation(self, observation):
-
         return np.array(Image.fromarray(observation).resize(self.shape[0:2]))
 
 
-class NormalizeWrapper(gym.ObservationWrapper):
+class NormalizeWrapper(ObservationWrapper):
     def __init__(self, env=None):
         super(NormalizeWrapper, self).__init__(env)
         self.obs_lo = self.observation_space.low[0, 0, 0]
@@ -36,7 +36,7 @@ class NormalizeWrapper(gym.ObservationWrapper):
             return (obs - self.obs_lo) / (self.obs_hi - self.obs_lo)
 
 
-class ImgWrapper(gym.ObservationWrapper):
+class ImgWrapper(ObservationWrapper):
     def __init__(self, env=None):
         super(ImgWrapper, self).__init__(env)
         obs_shape = self.observation_space.shape
@@ -51,7 +51,7 @@ class ImgWrapper(gym.ObservationWrapper):
         return observation.transpose(2, 0, 1)
 
 
-class DtRewardWrapper(gym.RewardWrapper):
+class DtRewardWrapper(RewardWrapper):
     def __init__(self, env):
         super(DtRewardWrapper, self).__init__(env)
 
@@ -67,23 +67,32 @@ class DtRewardWrapper(gym.RewardWrapper):
 
 
 # this is needed because at max speed the duckie can't turn anymore
-class ActionWrapper(gym.ActionWrapper):
+class ActionWrapper(ActionWrapper):
     def __init__(self, env):
-        gym.ActionWrapper.__init__(self, env)
+        ActionWrapper.__init__(self, env)
 
     def action(self, action):
         action_ = [action[0] * 0.8, action[1]]
         return action_
 
 
-class SteeringToWheelVelWrapper(gym.ActionWrapper):
+class SteeringToWheelVelWrapper(ActionWrapper):
     """
     Converts policy that was trained with [velocity|heading] actions to
     [wheelvel_left|wheelvel_right] to comply with AIDO evaluation format
     """
 
-    def __init__(self, env, gain=1.0, trim=0.0, radius=0.0318, k=27.0, limit=1.0, wheel_dist=0.102):
-        gym.ActionWrapper.__init__(self, env)
+    def __init__(
+        self,
+        env,
+        gain=1.0,
+        trim=0.0,
+        radius=0.0318,
+        k=27.0,
+        limit=1.0,
+        wheel_dist=0.102,
+    ):
+        ActionWrapper.__init__(self, env)
 
         # Should be adjusted so that the effective speed of the robot is 0.2 m/s
         self.gain = gain
