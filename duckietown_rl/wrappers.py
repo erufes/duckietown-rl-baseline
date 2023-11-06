@@ -1,5 +1,9 @@
 import gym
-from gym.core import ObservationWrapper, RewardWrapper, ActionWrapper
+from gym.core import (
+    ObservationWrapper,
+    RewardWrapper,
+    ActionWrapper as GymActionWrapper,
+)
 from gym import spaces
 import numpy as np
 from PIL import Image
@@ -8,7 +12,7 @@ from PIL import Image
 class ResizeWrapper(ObservationWrapper):
     def __init__(self, env=None, shape=(64, 64, 3)):
         super(ResizeWrapper, self).__init__(env)
-        self.observation_space.shape = shape
+        # self.observation_space.shape = shape
         self.observation_space = spaces.Box(
             self.observation_space.low[0, 0, 0],
             self.observation_space.high[0, 0, 0],
@@ -67,9 +71,9 @@ class DtRewardWrapper(RewardWrapper):
 
 
 # this is needed because at max speed the duckie can't turn anymore
-class ActionWrapper(ActionWrapper):
+class ActionWrapper(GymActionWrapper):
     def __init__(self, env):
-        ActionWrapper.__init__(self, env)
+        GymActionWrapper.__init__(self, env)
 
     def action(self, action):
         action_ = [action[0] * 0.8, action[1]]
